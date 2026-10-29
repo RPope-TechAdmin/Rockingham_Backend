@@ -7,7 +7,7 @@ name: Build and deploy Python project to Azure Function App - Rockingham-Backend
 on:
   push:
     branches:
-      - main
+      - 'main'
   workflow_dispatch:
 
 env:
@@ -18,33 +18,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: 🧾 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python version
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: 🧼 Clean old packages
-        run: rm -rf .python_packages
-
-      - name: 📦 Install dependencies to .python_packages
+      - name: Create and start virtual environment
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          python -m venv venv
+          source venv/bin/activate
 
-      - name: 📁 Zip entire app for deployment (including hidden dirs like .python_packages)
-        run: zip -r release.zip . -x "venv/*"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: ☁️ Upload artifact for deployment
+      # Optional: Add step to run tests here
+
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
+
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: release.zip
+          path: |
+            release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,21 +64,22 @@ jobs:
           name: python-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip     
+        run: |
+          unzip release.zip
+          rm release.zip
         
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_78CEF60B352F4D798CD748A8CF73B20C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B93E55247C934391BE2662E112B6A393 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_61DB72DFEF1446C299160B767E5B028C }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_16F109AEC0644DC1B1B2F2AAAD6B1C62 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_55E71873EB4041FDB59367CC65A11D19 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F7E15049C8E84C21BCA771643FBF2B13 }}
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         id: deploy-to-function
         with:
-          app-name: 'Jackson-Backend'
-          slot-name: 'jackson'
+          app-name: 'Rockingham-Backend'
+          slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          scm-do-build-during-deployment: true
           
