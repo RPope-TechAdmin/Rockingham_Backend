@@ -23,14 +23,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "X-Service-Key": f"{service_key}"
         }
 
-        # Some ALS API instances reject "Data": "string"; using null is often correct.
-        payload = {
-            "Username": username,
-            "Password": password,
-            "X-Service-Key": service_key,
-        }
-
-        response = requests.post(api_url, headers=headers, json=payload, timeout=10)
+        response = requests.post(api_url, headers=headers, timeout=10)
 
         if response.status_code == 401:
             logging.error("Unauthorized: Check credentials or API environment.")
