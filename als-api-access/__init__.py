@@ -7,34 +7,34 @@ import azure.functions as func
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Authenticating with ALS API...")
+
     try:
         api_url = "https://gip.alsglobal.com/login"
 
-        username = os.environ["API_USERNAME"]
-        password = os.environ["API_PASSWORD"]
-        service_key = os.environ["API_SERVICEKEY"]
         api_key = os.environ["API_KEY"]
-
-        logging.info(f"User: {username}")
-        logging.info(f"Password: {password}")
+        service_key = os.environ["API_SERVICEKEY"]
 
         headers = {
-            "accept": "*/*",
-            "Content-Type": "application/json;odata.metadata=minimal;odata.streaming=true",
-            "X-Service-Key": f"{service_key}"
+            "Accept": "*/*",
+            "X-Service-Key": service_key,
         }
 
         body = {
-            "Key": f"{api_key}"
+            "key": api_key,
         }
 
-        response = requests.post(api_url, headers=headers, body=body, timeout=10)
+        response = requests.post(
+            api_url,
+            headers=headers,
+            json=body,
+            timeout=10,
+        )
 
         if response.status_code == 401:
-            logging.error("Unauthorized: Check credentials or API environment.")
+            logging.error("Unauthorized: check service key, API key, or environment.")
             return func.HttpResponse(
                 json.dumps({
-                    "error": "Unauthorized. Verify credentials or API URL.",
+                    "error": "Unauthorized. Verify service key, API key, or API URL.",
                     "details": response.text,
                 }),
                 mimetype="application/json",
@@ -42,6 +42,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         response.raise_for_status()
+
         token = response.json()
 
         return func.HttpResponse(
@@ -50,8 +51,24 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=200,
         )
 
+    except requests.exceptions.Timeout:
+        logging.error("ALS API request timed out.")
+        return func.HttpResponse(
+            json.dumps({"error": "ALS API request timed out."}),
+            mimetype="application/json",
+            status_code=504,
+        )
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"ALS API request failed: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=502,
+        )
+
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.error(f"Unexpected error: {e}")
         return func.HttpResponse(
             json.dumps({"error": str(e)}),
             mimetype="application/json",
