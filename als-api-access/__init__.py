@@ -9,7 +9,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Authenticating with ALS API...")
 
     try:
-        api_url = "https://gip.alsglobal.com/login"
+        api_url = "https://gip.alsglobal.com/Login"
 
         api_key = os.environ["API_KEY"]
         service_key = os.environ["API_SERVICEKEY"]
