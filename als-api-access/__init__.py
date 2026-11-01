@@ -13,6 +13,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         username = os.environ["API_USERNAME"]
         password = os.environ["API_PASSWORD"]
         service_key = os.environ["API_SERVICEKEY"]
+        api_key = os.environ["API_KEY"]
 
         logging.info(f"User: {username}")
         logging.info(f"Password: {password}")
@@ -23,7 +24,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "X-Service-Key": f"{service_key}"
         }
 
-        response = requests.post(api_url, headers=headers, timeout=10)
+        body = {
+            "Key": f"{api_key}"
+        }
+
+        response = requests.post(api_url, headers=headers, body=body, timeout=10)
 
         if response.status_code == 401:
             logging.error("Unauthorized: Check credentials or API environment.")
