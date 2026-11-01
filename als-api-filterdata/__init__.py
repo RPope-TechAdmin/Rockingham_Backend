@@ -8,8 +8,10 @@ from datetime import datetime, timedelta
 from docx import Document
 from pathlib import Path
 
+API_KEY: "725128fb-1f6f-4038-bf29-049aa96017dd"
+
 cors_headers = {
-    "Access-Control-Allow-Origin": "https://delightful-tree-0888c340f.1.azurestaticapps.net", 
+    "Access-Control-Allow-Origin": "https://rockingham-backend-c6g3babgashpcua7.australiaeast-01.azurewebsites.net", 
     "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
     "Access-Control-Allow-Headers": "Content-Type, Accept",
     "Access-Control-Max-Age": "86400"

@@ -8,23 +8,26 @@ import azure.functions as func
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Authenticating with ALS API...")
     try:
-        api_url = "https://als-client-api.azurewebsites.net/api/user/authenticate"
+        api_url = "https://gip.alsglobal.com/login"
 
         username = os.environ["API_USERNAME"]
         password = os.environ["API_PASSWORD"]
+        service_key = os.environ["API_SERVICEKEY"]
 
         logging.info(f"User: {username}")
         logging.info(f"Password: {password}")
 
         headers = {
-            "accept": "application/json;odata.metadata=minimal;odata.streaming=true",
+            "accept": "*/*",
             "Content-Type": "application/json;odata.metadata=minimal;odata.streaming=true",
+            "X-Service-Key": f"{service_key}"
         }
 
         # Some ALS API instances reject "Data": "string"; using null is often correct.
         payload = {
             "Username": username,
             "Password": password,
+            "X-Service-Key": service_key,
         }
 
         response = requests.post(api_url, headers=headers, json=payload, timeout=10)
