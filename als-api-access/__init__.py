@@ -59,18 +59,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=504,
         )
 
-    except requests.exceptions.RequestException as e:
-        logging.error(f"ALS API request failed: {e}")
+    except requests.exceptions.HTTPError as e:
+        logging.error(
+            "ALS API HTTP error: status=%s response=%s",
+            response.status_code,
+            response.text[:1000],
+        )
         return func.HttpResponse(
-            json.dumps({"error": str(e)}),
+            json.dumps({
+                "error": "ALS API returned an error.",
+                "upstream_status": response.status_code,
+                "upstream_body": response.text[:1000],
+            }),
             mimetype="application/json",
             status_code=502,
-        )
-
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-        return func.HttpResponse(
-            json.dumps({"error": str(e)}),
-            mimetype="application/json",
-            status_code=500,
         )
