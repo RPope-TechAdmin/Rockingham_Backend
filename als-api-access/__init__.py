@@ -7,8 +7,9 @@ import azure.functions as func
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Authenticating with ALS API...")
-
+    logging.info("Accessing GIP...")
     try:
+        
         api_url = "https://gip.alsglobal.com/api/Login"
 
         api_key = os.environ["API_KEY"]
