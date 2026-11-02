@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import azure.functions as func
 import requests
 
@@ -60,8 +60,8 @@ def get_als_samples(
     }
 
     params = {
-        "StartDateTimeUTC": start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "EndDateTimeUTC": end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "StartDateTimeUTC": start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "OnlyCompletedSamples": str(only_completed_samples).lower(),
         "LanguageCode": language_code,
     }
@@ -74,24 +74,20 @@ def get_als_samples(
     )
 
     logging.info(
-        "ALS data response: status=%s content_type=%s url=%s length=%s",
+        "ALS data response: status=%s url=%s content_type=%s",
         response.status_code,
-        response.headers.get("Content-Type"),
         response.url,
-        len(response.text),
-    )
-    logging.info(
-        "ALS data body preview: %r",
-        response.text[:500],
+        response.headers.get("Content-Type"),
     )
 
     response.raise_for_status()
 
-    if not response.text.strip():
-        raise ValueError(
-            f"ALS data endpoint returned an empty body. "
-            f"Status={response.status_code}, URL={response.url}"
-        )
+    if response.status_code == 204 or not response.text.strip():
+        logging.info("ALS returned no data for the requested period.")
+        return {
+            "data": [],
+            "message": "No results found for the requested date range and filters.",
+        }
 
     return response.json()
 
@@ -100,8 +96,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("als-api-access entered")
 
     try:
-        start_utc = datetime(2026, 11, 1, tzinfo=timezone.utc)
-        end_utc = datetime(2026, 11, 2, tzinfo=timezone.utc)
+        end_utc = datetime.now(datetime.timezone.utc)
+        start_utc = datetime.now(datetime.timezone.utc) - timedelta(days=7)
 
         token = get_als_token()
         samples = get_als_samples(
