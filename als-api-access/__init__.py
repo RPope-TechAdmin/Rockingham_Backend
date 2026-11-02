@@ -60,17 +60,35 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     except requests.exceptions.HTTPError as e:
-        logging.error(
-            "ALS API HTTP error: status=%s response=%s",
-            response.status_code,
-            response.text[:1000],
-        )
+            logging.error(
+                "ALS API HTTP error: status=%s response=%s",
+                response.status_code,
+                response.text[:1000],
+            )
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "ALS API returned an error.",
+                    "upstream_status": response.status_code,
+                    "upstream_body": response.text[:1000],
+                }),
+                mimetype="application/json",
+                status_code=502,
+            )
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"ALS API request failed: {e}")
         return func.HttpResponse(
-            json.dumps({
-                "error": "ALS API returned an error.",
-                "upstream_status": response.status_code,
-                "upstream_body": response.text[:1000],
-            }),
+            json.dumps({"error": str(e)}),
             mimetype="application/json",
             status_code=502,
+        )
+
+    except Exception:
+        logging.exception("Unhandled exception in als-api-access")
+        return func.HttpResponse(
+            json.dumps({
+                "error": "Internal function error. See Function App logs."
+            }),
+            mimetype="application/json",
+            status_code=500,
         )
