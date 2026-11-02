@@ -96,8 +96,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("als-api-access entered")
 
     try:
-        end_utc = datetime.now(datetime.timezone.utc)
-        start_utc = datetime.now(datetime.timezone.utc) - timedelta(days=7)
+        start_utc = datetime.now(timezone.utc) - timedelta(weeks=1)
+        end_utc = datetime.now(timezone.utc)
 
         token = get_als_token()
         samples = get_als_samples(
