@@ -51,12 +51,12 @@ def get_date_range_days(days: int = 7) -> tuple[str, str]:
         end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
     )
 
-start_date, end_date = get_date_range_days(7)
+start_utc, end_utc = get_date_range_days(7)
 
 def get_als_samples(
     token: str,
-    start_date: str,
-    end_date: str,
+    start_utc: str,
+    end_utc: str,
     only_completed_samples: bool = True,
     language_code: str = "en-GB",
 ) -> dict:
@@ -70,8 +70,8 @@ def get_als_samples(
     }
 
     params = {
-        "StartDateTimeUTC": start_date,
-        "EndDateTimeUTC": end_date,
+        "StartDateTimeUTC": start_utc,
+        "EndDateTimeUTC": end_utc,
         "OnlyCompletedSamples": str(only_completed_samples).lower(),
         "LanguageCode": language_code,
     }
