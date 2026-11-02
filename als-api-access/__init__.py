@@ -17,6 +17,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         headers = {
             "Accept": "*/*",
+            "Content-Type": "application/json",
             "X-Service-Key": service_key,
         }
 
