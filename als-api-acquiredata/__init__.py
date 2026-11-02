@@ -33,7 +33,7 @@ def get_als_token() -> str:
 
     # Adjust this field name once you confirm the login response structure.
     token = (
-        payload.get("token")
+        payload.get("Token")
         or payload.get("accessToken")
         or payload.get("access_token")
     )
