@@ -34,8 +34,12 @@ jobs:
           python -m venv venv
           source venv/bin/activate
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies for Azure Functions
+        run: |
+          pip install --target="./.python_packages/lib/site-packages" -r requirements.txt
+
+      - name: Zip artifact for deployment
+        run: zip -r release.zip . -x "venv/*" ".git/*" ".github/*"
 
       # Optional: Add step to run tests here
 
