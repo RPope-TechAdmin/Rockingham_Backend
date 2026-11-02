@@ -8,7 +8,6 @@ import requests
 
 ALS_BASE_URL = "https://gip.alsglobal.com"
 LOGIN_URL = f"{ALS_BASE_URL}/Login"
-# Replace with the exact data endpoint supplied by ALS.
 SAMPLES_URL = f"{ALS_BASE_URL}/WebTrieve/Results/Data"
 
 
@@ -16,6 +15,7 @@ def get_als_token() -> str:
     api_key = os.environ["API_KEY"]
     service_key = os.environ["API_SERVICEKEY"]
 
+    logging.info("Logging in...")
     response = requests.post(
         LOGIN_URL,
         headers={
@@ -29,6 +29,7 @@ def get_als_token() -> str:
     response.raise_for_status()
 
     payload = response.json()
+    logging.info(f"{payload}")
 
     # Adjust this field name once you confirm the login response structure.
     token = (
