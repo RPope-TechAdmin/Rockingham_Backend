@@ -10,7 +10,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Accessing GIP...")
     try:
         
-        api_url = "https://gip.alsglobal.com/api/Login"
+        api_url = "https://gip.alsglobal.com/Login"
 
         api_key = os.environ["API_KEY"]
         service_key = os.environ["API_SERVICEKEY"]
