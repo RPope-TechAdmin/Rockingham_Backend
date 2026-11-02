@@ -15,7 +15,6 @@ def get_als_token() -> str:
     api_key = os.environ["API_KEY"]
     service_key = os.environ["API_SERVICEKEY"]
 
-    logging.info("Logging in...")
     response = requests.post(
         LOGIN_URL,
         headers={
@@ -29,11 +28,11 @@ def get_als_token() -> str:
     response.raise_for_status()
 
     payload = response.json()
-    logging.info(f"{payload}")
 
     # Adjust this field name once you confirm the login response structure.
     token = (
-        payload.get("Token")
+        payload.get("token")
+        or payload.get("Token")
         or payload.get("accessToken")
         or payload.get("access_token")
     )
@@ -73,7 +72,26 @@ def get_als_samples(
         params=params,
         timeout=(5, 60),
     )
+
+    logging.info(
+        "ALS data response: status=%s content_type=%s url=%s length=%s",
+        response.status_code,
+        response.headers.get("Content-Type"),
+        response.url,
+        len(response.text),
+    )
+    logging.info(
+        "ALS data body preview: %r",
+        response.text[:500],
+    )
+
     response.raise_for_status()
+
+    if not response.text.strip():
+        raise ValueError(
+            f"ALS data endpoint returned an empty body. "
+            f"Status={response.status_code}, URL={response.url}"
+        )
 
     return response.json()
 
