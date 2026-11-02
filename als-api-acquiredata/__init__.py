@@ -42,11 +42,21 @@ def get_als_token() -> str:
 
     return token
 
+def get_date_range_days(days: int = 7) -> tuple[str, str]:
+    end_utc = datetime.now(timezone.utc)
+    start_utc = end_utc - timedelta(days=days)
+
+    return (
+        start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    )
+
+start_date, end_date = get_date_range_days(7)
 
 def get_als_samples(
     token: str,
-    start_utc: datetime,
-    end_utc: datetime,
+    start_date: str,
+    end_date: str,
     only_completed_samples: bool = True,
     language_code: str = "en-GB",
 ) -> dict:
@@ -60,8 +70,8 @@ def get_als_samples(
     }
 
     params = {
-        "EndDateTimeUTC": end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "StartDateTimeUTC": start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "StartDateTimeUTC": start_date,
+        "EndDateTimeUTC": end_date,
         "OnlyCompletedSamples": str(only_completed_samples).lower(),
         "LanguageCode": language_code,
     }
@@ -96,8 +106,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("als-api-access entered")
 
     try:
-        start_utc = datetime.now(timezone.utc) - timedelta(weeks=1)
-        end_utc = datetime.now(timezone.utc)
+        start_utc = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(weeks=1)
+        end_utc = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
         token = get_als_token()
         samples = get_als_samples(
