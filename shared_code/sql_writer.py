@@ -40,7 +40,7 @@ def build_insert_sql(row: dict[str, Any]) -> str | None:
     value_list = ", ".join(values)
 
     return (
-        f"INSERT INTO [Jackson].[{project_table}] "
+        f"INSERT INTO [Rockingham].[{project_table}] "
         f"({field_list}) VALUES ({value_list});"
     )
 
