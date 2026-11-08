@@ -16,7 +16,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         project_no = req.params.get("sample_type_name")
         workorder_code = req.params.get("batch_no")
-        from_days_ago = int(req.params.get("from_days_ago", 50))
+        from_days_ago = int(req.params.get("from_days_ago", 7))
 
         token = get_als_token()
 
