@@ -15,7 +15,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         project_no = req.params.get("sample_type_name")
-        workorder_code = req.params.get("workorder_code")
+        workorder_code = req.params.get("batch_no")
         from_days_ago = int(req.params.get("from_days_ago", 7))
 
         token = get_als_token()
@@ -30,7 +30,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         prepared_rows = transform_als_payload(
             payload=als_payload,
-            sample_type_name=sample_type_name,
+            sample_type_name=project_no,
         )
 
         sql_statements = build_sql_statements(prepared_rows)
