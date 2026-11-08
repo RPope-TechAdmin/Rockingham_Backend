@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 import logging
-from shared_code.als_routing import PROJECT_MAP, TABLE_FIELD_MAP
+from shared_code.references import PROJECT_MAP, TABLE_FIELD_MAP
 
 
 def normalise_identifier(value: str | None) -> str:
