@@ -8,10 +8,10 @@ logger = logging.getLogger(__name__)
 ALS_BASE_URL = "https://gip.alsglobal.com"
 LOGIN_URL = f"{ALS_BASE_URL}/Login"
 SAMPLES_URL = f"{ALS_BASE_URL}/WebTrieve/Results/Data"
-
+DATA_URL = "https://gip.alsglobal.com/WebTrieve/Results/Data"
 
 def get_date_range_days(days: int = 7) -> tuple[str, str]:
-    end_utc = datetime.now(timezone.utc) - timedelta(days=days)
+    end_utc = datetime.now(timezone.utc)
     start_utc = end_utc - timedelta(days=days)
 
     return (
@@ -63,15 +63,14 @@ def get_als_samples(
     }
 
     logger.info(
-        "ALS data request: method=%s url=%s params=%s",
-        "GET",
-        SAMPLES_URL,
+        "ALS data request: url=%s params=%s",
+        DATA_URL,
         params,
     )
 
     try:
         response = requests.get(
-            SAMPLES_URL,
+            DATA_URL,
             headers=headers,
             params=params,
             timeout=30,
@@ -119,7 +118,7 @@ def get_als_samples(
     except requests.exceptions.Timeout:
         logger.error(
             "ALS data request timed out: url=%s start=%s end=%s",
-            SAMPLES_URL,
+            DATA_URL,
             start_date,
             end_date,
         )
@@ -128,7 +127,7 @@ def get_als_samples(
     except requests.exceptions.RequestException:
         logger.exception(
             "ALS data request failed: url=%s start=%s end=%s",
-            SAMPLES_URL,
+            DATA_URL,
             start_date,
             end_date,
         )
