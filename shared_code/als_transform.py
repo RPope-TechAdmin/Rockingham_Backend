@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 import logging
-from shared_code.references import PROJECT_TABLE_ROUTES, TABLE_FIELD_MAP
+from shared_code.references import PROJECT_TABLE_ROUTES, TABLE_FIELD_MAP_ROCKINGHAM
 
 
 def normalise_identifier(value: str | None) -> str:
@@ -37,7 +37,7 @@ def build_sample_row(
     tests: list[dict[str, Any]],
     project_table: str,
 ) -> dict[str, Any] | None:
-    field_map = TABLE_FIELD_MAP.get(project_table)
+    field_map = TABLE_FIELD_MAP_ROCKINGHAM.get(project_table)
 
     if not field_map:
         return None

@@ -1,6 +1,6 @@
 from typing import Any
 
-from shared_code.als_routing import TABLE_FIELD_MAP
+from shared_code.references import TABLE_FIELD_MAP_ROCKINGHAM
 
 
 def sql_string(value: Any) -> str:
@@ -26,7 +26,7 @@ def build_insert_sql(row: dict[str, Any]) -> str | None:
     if not project_table:
         return None
 
-    fields = TABLE_FIELD_MAP.get(project_table)
+    fields = TABLE_FIELD_MAP_ROCKINGHAM.get(project_table)
 
     if not fields:
         return None
