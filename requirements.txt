@@ -11,3 +11,4 @@ flask
 openpyxl
 pyodbc
 python-docx
+typing

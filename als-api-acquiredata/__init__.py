@@ -1,54 +1,58 @@
 import json
 import logging
-import requests
+import os
+from datetime import datetime, timedelta
 import azure.functions as func
+import requests
 
-from shared_code.als_client import (
-    get_als_samples,
-    get_als_token,
-    get_date_range_days,
-)
+from shared_code.als_client import get_als_token, get_als_samples
+from shared_code.als_transform import transform_als_payload
+from shared_code.sql_writer import build_sql_statements
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("als-api-acquiredata entered")
+    logging.info("Fetching and transforming ALS lab data.")
 
     try:
-        start_date, end_date = get_date_range_days(7)
+        project_no = req.params.get("sample_type_name")
+        workorder_code = req.params.get("workorder_code")
+        from_days_ago = int(req.params.get("from_days_ago", 7))
 
         token = get_als_token()
 
-        samples = get_als_samples(
+        start_date, end_date = get_date_range(from_days_ago)
+
+        als_payload = get_als_samples(
             token=token,
             start_date=start_date,
             end_date=end_date,
-            only_completed_samples=True,
+        )
+
+        prepared_rows = transform_als_payload(
+            payload=als_payload,
+            sample_type_name=sample_type_name,
+        )
+
+        sql_statements = build_sql_statements(prepared_rows)
+
+        if not sql_statements:
+            return func.HttpResponse(
+                body="-- No matching ALS samples or mapped analytes found.\n",
+                mimetype="application/sql",
+                status_code=200,
+            )
+
+        sql_content = "\n".join(sql_statements)
+        filename = (
+            f"lab_data_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.sql"
         )
 
         return func.HttpResponse(
-            json.dumps(samples),
-            mimetype="application/json",
-            status_code=200,
-        )
-
-    except requests.exceptions.HTTPError as e:
-        response = e.response
-
-        logging.error(
-            "ALS API HTTP error: status=%s url=%s body=%s",
-            response.status_code if response else "unknown",
-            response.url if response else "unknown",
-            response.text[:1000] if response else "unknown",
-        )
-
-        return func.HttpResponse(
-            json.dumps({
-                "error": "ALS API returned an error.",
-                "upstream_status": response.status_code if response else None,
-                "upstream_body": response.text[:1000] if response else None,
-            }),
-            mimetype="application/json",
-            status_code=502,
+            body=sql_content,
+            mimetype="application/sql",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            },
         )
 
     except Exception:
@@ -59,3 +63,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=500,
         )
+
+
+def get_date_range(days: int) -> tuple[str, str]:
+    end_utc = datetime.utcnow()
+    start_utc = end_utc - timedelta(days=days)
+
+    return (
+        start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    )
