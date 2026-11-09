@@ -46,8 +46,8 @@ def get_als_token() -> str:
 
 def get_als_samples(
     token: str,
-    start_date: str,
-    end_date: str,
+    start_utc: str,
+    end_utc: str,
     only_completed_samples: bool = True,
     language_code: str = "en-GB",
 ) -> dict:
@@ -60,8 +60,8 @@ def get_als_samples(
     }
 
     params = {
-        "StartDateTimeUTC": start_date,
-        "EndDateTimeUTC": end_date,
+        "StartDateTimeUTC": start_utc,
+        "EndDateTimeUTC": end_utc,
         "OnlyCompletedSamples": str(only_completed_samples).lower(),
         "LanguageCode": language_code,
     }
