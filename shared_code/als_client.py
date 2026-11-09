@@ -3,12 +3,11 @@ import os
 import requests
 from datetime import datetime, timedelta, timezone
 
-logger = logging.getLogger(__name__)
 
 ALS_BASE_URL = "https://gip.alsglobal.com"
 LOGIN_URL = f"{ALS_BASE_URL}/Login"
 SAMPLES_URL = f"{ALS_BASE_URL}/WebTrieve/Results/Data"
-DATA_URL = "https://gip.alsglobal.com/WebTrieve/Results/Data"
+
 
 def get_date_range_days(days: int = 7) -> tuple[str, str]:
     end_utc = datetime.now(timezone.utc)
@@ -49,86 +48,45 @@ def get_als_samples(
     token: str,
     start_date: str,
     end_date: str,
+    only_completed_samples: bool = True,
+    language_code: str = "en-GB",
 ) -> dict:
+    service_key = os.environ["API_SERVICEKEY"]
+
+    headers = {
+        "Accept": "*/*",
+        "X-Service-Key": service_key,
+        "Authorization": f"Bearer {token}",
+    }
+
     params = {
         "StartDateTimeUTC": start_date,
         "EndDateTimeUTC": end_date,
-        "OnlyCompletedSamples": "true",
-        "LanguageCode": "en-GB",
+        "OnlyCompletedSamples": str(only_completed_samples).lower(),
+        "LanguageCode": language_code,
     }
 
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json",
-    }
-
-    logger.info(
-        "ALS data request: url=%s params=%s",
-        DATA_URL,
-        params,
+    response = requests.get(
+        SAMPLES_URL,
+        headers=headers,
+        params=params,
+        timeout=(5, 60),
     )
 
-    try:
-        response = requests.get(
-            DATA_URL,
-            headers=headers,
-            params=params,
-            timeout=30,
-        )
+    logging.info(
+        "ALS data response: status=%s url=%s content_type=%s",
+        response.status_code,
+        response.url,
+        response.headers.get("Content-Type"),
+    )
 
-        logger.info(
-            "ALS data response: status=%s elapsed_seconds=%.2f "
-            "content_type=%s content_length=%s",
-            response.status_code,
-            response.elapsed.total_seconds(),
-            response.headers.get("Content-Type"),
-            response.headers.get("Content-Length"),
-        )
+    response.raise_for_status()
 
-        # Useful support-correlation headers, if ALS returns them.
-        for header_name in (
-            "X-Request-Id",
-            "Request-Id",
-            "Correlation-Id",
-            "X-Correlation-ID",
-        ):
-            if response.headers.get(header_name):
-                logger.info(
-                    "ALS response header: %s=%s",
-                    header_name,
-                    response.headers[header_name],
-                )
+    if response.status_code == 204 or not response.text.strip():
+        logging.info("ALS returned no data for the requested period.")
+        return {
+            "data": [],
+            "message": "No results found for the requested date range and filters.",
+        }
 
-        if not response.ok:
-            response_body = response.text[:2000]
-
-            logger.error(
-                "ALS data request failed: status=%s reason=%s "
-                "url=%s response_body=%r",
-                response.status_code,
-                response.reason,
-                response.url,
-                response_body,
-            )
-
-            response.raise_for_status()
-
-        return response.json()
-
-    except requests.exceptions.Timeout:
-        logger.error(
-            "ALS data request timed out: url=%s start=%s end=%s",
-            DATA_URL,
-            start_date,
-            end_date,
-        )
-        raise
-
-    except requests.exceptions.RequestException:
-        logger.exception(
-            "ALS data request failed: url=%s start=%s end=%s",
-            DATA_URL,
-            start_date,
-            end_date,
-        )
-        raise
+    return response.json()
