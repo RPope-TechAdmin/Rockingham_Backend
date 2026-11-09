@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import azure.functions as func
 import requests
 
-from shared_code.als_client import get_als_token, get_als_samples
+from shared_code.als_client import get_als_token, get_als_samples, get_date_range_days
 from shared_code.als_transform import transform_als_payload
 from shared_code.sql_writer import build_sql_statements
 
@@ -20,12 +20,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         token = get_als_token()
 
-        start_date, end_date = get_date_range(from_days_ago)
+        start_utc, end_utc = get_date_range_days(from_days_ago)
 
         als_payload = get_als_samples(
             token=token,
-            start_date=start_date,
-            end_date=end_date,
+            start_utc=start_utc,
+            end_utc=end_utc,
         )
 
         prepared_rows = transform_als_payload(
@@ -63,13 +63,3 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=500,
         )
-
-
-def get_date_range(days: int) -> tuple[str, str]:
-    end_utc = datetime.utcnow()
-    start_utc = end_utc - timedelta(days=days)
-
-    return (
-        start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
-    )
