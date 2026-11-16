@@ -16,5 +16,7 @@ TABLE_FIELD_MAP_ROCKINGHAM = {
 
 PROJECT_TABLE_ROUTES = {
     "SOIL/SOIL": "Landfill",
+    "SOIL/SOLID": "Landfill",
     "WATER/WATER": "Trade Waste",
+    "WATER/WASTE WATER": "Trade Waste",
 }
