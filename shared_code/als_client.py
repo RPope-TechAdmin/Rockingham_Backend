@@ -10,7 +10,7 @@ SAMPLES_URL = f"{ALS_BASE_URL}/WebTrieve/Results/Data"
 
 
 def get_date_range_days(days: int = 7) -> tuple[str, str]:
-    end_utc = datetime.now(timezone.utc) - timedelta(days=14)
+    end_utc = datetime.now(timezone.utc) - timedelta(days=21)
     start_utc = end_utc - timedelta(days=days)
 
     return (
